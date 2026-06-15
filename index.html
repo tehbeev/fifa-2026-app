@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="WC 2026" />
+<meta name="theme-color" content="#ffffff" />
+<title>FIFA World Cup 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f4;
+    --bg3: #efefed;
+    --bg-info: #e6f1fb;
+    --bg-danger: #fcebeb;
+    --bg-success: #eaf3de;
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9a9a96;
+    --text-info: #0c447c;
+    --text-danger: #a32d2d;
+    --text-success: #27500a;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg2: #262624;
+      --bg3: #2e2e2c;
+      --bg-info: #042c53;
+      --bg-danger: #501313;
+      --bg-success: #173404;
+      --text: #f0efe8;
+      --text2: #a8a8a2;
+      --text3: #6b6b67;
+      --text-info: #85b7eb;
+      --text-danger: #f09595;
+      --text-success: #97c459;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+    }
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100dvh; }
+  .app { max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+  /* Onboarding */
+  .onboard { padding: 40px 24px; }
+  .onboard .logo { font-size: 48px; margin-bottom: 16px; }
+  .onboard h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .onboard p { font-size: 15px; color: var(--text2); line-height: 1.6; margin-bottom: 28px; }
+  input[type=text] {
+    width: 100%; padding: 12px 14px; font-size: 16px; font-family: var(--font);
+    border: 0.5px solid var(--border2); border-radius: var(--radius-lg);
+    background: var(--bg2); color: var(--text); margin-bottom: 12px; outline: none;
+  }
+  input[type=text]:focus { border-color: #378add; box-shadow: 0 0 0 3px rgba(55,138,221,0.15); }
+  .btn {
+    display: block; width: 100%; padding: 13px; font-size: 15px; font-family: var(--font);
+    background: var(--text); color: var(--bg); border: none; border-radius: var(--radius-lg);
+    cursor: pointer; font-weight: 500; transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.8; }
+  .btn-ghost {
+    background: none; color: var(--text2); border: 0.5px solid var(--border);
+    padding: 7px 14px; font-size: 13px; border-radius: var(--radius-md); width: auto; display: inline-block;
+  }
+
+  /* Header */
+  .user-bar { padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); }
+  .user-info { font-size: 13px; color: var(--text2); }
+  .user-name { font-weight: 600; color: var(--text); }
+  .header { padding: 14px 16px 10px; display: flex; align-items: center; gap: 10px; border-bottom: 0.5px solid var(--border); }
+  .header h1 { font-size: 17px; font-weight: 600; flex: 1; }
+  .badge { font-size: 11px; background: var(--bg-info); color: var(--text-info); padding: 3px 9px; border-radius: var(--radius-md); font-weight: 500; }
+
+  /* Nav */
+  .nav { display: flex; border-bottom: 0.5px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+  .nav-btn { flex: 1; padding: 12px 0; font-size: 13px; background: none; border: none; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; font-family: var(--font); transition: all 0.15s; }
+  .nav-btn.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+
+  /* Teams */
+  .section { padding: 0 16px; }
+  .section-title { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; padding: 16px 0 8px; font-weight: 600; }
+  .team-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-bottom: 8px; }
+  .team-card {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;
+    transition: border-color 0.15s, background 0.15s; -webkit-tap-highlight-color: transparent;
+  }
+  .team-card.fav { border-color: #378add; background: var(--bg-info); }
+  .team-flag { font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .team-name { font-size: 13px; color: var(--text); flex: 1; line-height: 1.3; }
+  .fav-icon { font-size: 15px; color: var(--text3); flex-shrink: 0; }
+  .team-card.fav .fav-icon { color: var(--text-info); }
+
+  /* Matches */
+  .match-date-header { font-size: 12px; color: var(--text3); padding: 14px 0 6px; font-weight: 600; }
+  .match-card {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg);
+    padding: 14px; margin-bottom: 8px;
+  }
+  .match-teams { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .match-team { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; max-width: 38%; }
+  .match-team.right { flex-direction: row-reverse; text-align: right; }
+  .match-score { font-size: 20px; font-weight: 600; min-width: 60px; text-align: center; color: var(--text); }
+  .match-score.live { color: var(--text-danger); }
+  .match-score.vs { font-size: 14px; color: var(--text3); font-weight: 400; }
+  .match-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .match-meta span { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
+  .live-badge { background: var(--bg-danger); color: var(--text-danger); font-size: 10px; padding: 2px 7px; border-radius: var(--radius-md); font-weight: 600; }
+  .group-tag { background: var(--bg3); color: var(--text3); font-size: 10px; padding: 2px 7px; border-radius: var(--radius-md); }
+
+  /* Favs */
+  .fav-toggle-row { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 0 12px; }
+  .fav-pill {
+    font-size: 13px; padding: 6px 12px; border-radius: 20px;
+    background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border);
+    cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+  }
+  .fav-pill.active { background: var(--bg-info); color: var(--text-info); border-color: #378add; font-weight: 500; }
+
+  /* Empty / loading */
+  .empty { text-align: center; padding: 52px 24px; color: var(--text2); font-size: 14px; line-height: 1.7; }
+  .empty i { font-size: 36px; display: block; margin-bottom: 12px; color: var(--text3); }
+  .refresh-note { text-align: center; font-size: 11px; color: var(--text3); padding: 12px; }
+</style>
+</head>
+<body>
+<div class="app" id="app"><div class="empty"><i class="ti ti-loader"></i>Loading...</div></div>
+<script>
+const WC = {
+  teams: [
+    {id:1,name:"Argentina",flag:"🇦🇷",group:"A"},{id:2,name:"Australia",flag:"🇦🇺",group:"A"},
+    {id:3,name:"Saudi Arabia",flag:"🇸🇦",group:"A"},{id:4,name:"Mexico",flag:"🇲🇽",group:"A"},
+    {id:5,name:"Brazil",flag:"🇧🇷",group:"B"},{id:6,name:"Switzerland",flag:"🇨🇭",group:"B"},
+    {id:7,name:"Cameroon",flag:"🇨🇲",group:"B"},{id:8,name:"Serbia",flag:"🇷🇸",group:"B"},
+    {id:9,name:"Portugal",flag:"🇵🇹",group:"C"},{id:10,name:"Uruguay",flag:"🇺🇾",group:"C"},
+    {id:11,name:"South Korea",flag:"🇰🇷",group:"C"},{id:12,name:"Ghana",flag:"🇬🇭",group:"C"},
+    {id:13,name:"France",flag:"🇫🇷",group:"D"},{id:14,name:"Denmark",flag:"🇩🇰",group:"D"},
+    {id:15,name:"Tunisia",flag:"🇹🇳",group:"D"},{id:16,name:"Poland",flag:"🇵🇱",group:"D"},
+    {id:17,name:"Spain",flag:"🇪🇸",group:"E"},{id:18,name:"Germany",flag:"🇩🇪",group:"E"},
+    {id:19,name:"Japan",flag:"🇯🇵",group:"E"},{id:20,name:"Costa Rica",flag:"🇨🇷",group:"E"},
+    {id:21,name:"Belgium",flag:"🇧🇪",group:"F"},{id:22,name:"Croatia",flag:"🇭🇷",group:"F"},
+    {id:23,name:"Morocco",flag:"🇲🇦",group:"F"},{id:24,name:"Canada",flag:"🇨🇦",group:"F"},
+    {id:25,name:"England",flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",group:"G"},{id:26,name:"USA",flag:"🇺🇸",group:"G"},
+    {id:27,name:"Iran",flag:"🇮🇷",group:"G"},{id:28,name:"Wales",flag:"🏴󠁧󠁢󠁷󠁬󠁳󠁿",group:"G"},
+    {id:29,name:"Netherlands",flag:"🇳🇱",group:"H"},{id:30,name:"Senegal",flag:"🇸🇳",group:"H"},
+    {id:31,name:"Ecuador",flag:"🇪🇨",group:"H"},{id:32,name:"Qatar",flag:"🇶🇦",group:"H"},
+  ],
+  matches: [
+    {id:1,home:26,away:24,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-11T19:00",venue:"SoFi Stadium",city:"Los Angeles"},
+    {id:2,home:25,away:3,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-12T13:00",venue:"AT&T Stadium",city:"Dallas"},
+    {id:3,home:13,away:15,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-12T16:00",venue:"MetLife Stadium",city:"New York"},
+    {id:4,home:1,away:4,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-12T19:00",venue:"Mercedes-Benz Stadium",city:"Atlanta"},
+    {id:5,home:18,away:20,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-13T13:00",venue:"Gillette Stadium",city:"Boston"},
+    {id:6,home:9,away:10,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-13T16:00",venue:"Levi's Stadium",city:"San Francisco"},
+    {id:7,home:17,away:19,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-13T19:00",venue:"Rose Bowl",city:"Los Angeles"},
+    {id:8,home:5,away:8,homeScore:1,awayScore:0,status:"live",minute:64,date:"2026-06-14T15:00",venue:"BC Place",city:"Vancouver"},
+    {id:9,home:29,away:31,homeScore:2,awayScore:1,status:"live",minute:78,date:"2026-06-14T15:00",venue:"Arrowhead Stadium",city:"Kansas City"},
+    {id:10,home:21,away:23,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-14T19:00",venue:"Hard Rock Stadium",city:"Miami"},
+    {id:11,home:30,away:32,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-15T13:00",venue:"SoFi Stadium",city:"Los Angeles"},
+    {id:12,home:22,away:24,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-15T16:00",venue:"AT&T Stadium",city:"Dallas"},
+    {id:13,home:11,away:12,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-15T19:00",venue:"MetLife Stadium",city:"New York"},
+    {id:14,home:6,away:7,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-16T13:00",venue:"Allegiant Stadium",city:"Las Vegas"},
+    {id:15,home:27,away:28,homeScore:null,awayScore:null,status:"scheduled",date:"2026-06-16T16:00",venue:"SoFi Stadium",city:"Los Angeles"},
+  ]
+};
+
+let S = { tab:"matches", user:null, favs:[], activeFav:null };
+
+const team = id => WC.teams.find(t => t.id === id);
+const $ = id => document.getElementById(id);
+
+function fmtET(ds) {
+  return new Date(ds+":00").toLocaleString("en-US",{timeZone:"America/New_York",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",hour12:true})+" ET";
+}
+function fmtDay(ds) {
+  return new Date(ds+":00").toLocaleDateString("en-US",{timeZone:"America/New_York",weekday:"long",month:"long",day:"numeric"});
+}
+
+async function loadFavs(name) {
+  try {
+    const key = "wc2026_" + name.toLowerCase().replace(/\s+/g,"_");
+    const r = await window.storage.get(key);
+    S.favs = r ? JSON.parse(r.value) : [];
+  } catch(e) { S.favs = []; }
+}
+async function saveFavs() {
+  if (!S.user) return;
+  const key = "wc2026_" + S.user.toLowerCase().replace(/\s+/g,"_");
+  try { await window.storage.set(key, JSON.stringify(S.favs)); } catch(e){}
+}
+
+function toggleFav(id) {
+  S.favs = S.favs.includes(id) ? S.favs.filter(f=>f!==id) : [...S.favs, id];
+  if (!S.favs.includes(S.activeFav)) S.activeFav = S.favs[0]||null;
+  saveFavs(); render();
+}
+
+function matchCard(m) {
+  const ht=team(m.home), at=team(m.away);
+  if(!ht||!at) return "";
+  const live=m.status==="live";
+  const scoreHtml = (live||m.status==="finished")
+    ? `<div class="match-score${live?" live":""}">${m.homeScore}–${m.awayScore}</div>`
+    : `<div class="match-score vs">vs</div>`;
+  return `<div class="match-card">
+    <div class="match-teams">
+      <div class="match-team">${ht.flag} <span>${ht.name}</span></div>
+      ${scoreHtml}
+      <div class="match-team right">${at.flag} <span>${at.name}</span></div>
+    </div>
+    <div class="match-meta">
+      ${live?`<span class="live-badge">● Live ${m.minute}'</span>`:""}
+      <span><i class="ti ti-clock" style="font-size:11px"></i> ${fmtET(m.date)}</span>
+      <span><i class="ti ti-map-pin" style="font-size:11px"></i> ${m.venue}, ${m.city}</span>
+      <span class="group-tag">Group ${ht.group}</span>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const app = $("app");
+  if (!S.user) {
+    app.innerHTML = `<div class="onboard">
+      <div class="logo">⚽</div>
+      <h1>FIFA World Cup 2026</h1>
+      <p>Track all matches, follow your favourite teams, and get live score updates. Each person gets their own saved favourites.</p>
+      <input type="text" id="nameIn" placeholder="Your name" maxlength="30" autocomplete="off" />
+      <button class="btn" onclick="doStart()">Get started</button>
+    </div>`;
+    const inp = $("nameIn");
+    if (inp) { inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") doStart(); }); }
+    return;
+  }
+
+  let html = `
+  <div class="user-bar">
+    <div class="user-info">👋 <span class="user-name">${S.user}</span></div>
+    <button class="btn btn-ghost" onclick="doSwitch()">Switch user</button>
+  </div>
+  <div class="header">
+    <i class="ti ti-trophy" style="font-size:20px;color:var(--text2)"></i>
+    <h1>World Cup 2026</h1>
+    <span class="badge">Jun 11 – Jul 19</span>
+  </div>
+  <div class="nav">
+    <button class="nav-btn${S.tab==="matches"?" active":""}" onclick="setTab('matches')">Matches</button>
+    <button class="nav-btn${S.tab==="favs"?" active":""}" onclick="setTab('favs')">My teams</button>
+    <button class="nav-btn${S.tab==="teams"?" active":""}" onclick="setTab('teams')">All teams</button>
+  </div>`;
+
+  if (S.tab === "teams") {
+    const groups = [...new Set(WC.teams.map(t=>t.group))].sort();
+    html += `<div class="section">`;
+    for (const g of groups) {
+      html += `<div class="section-title">Group ${g}</div><div class="team-grid">`;
+      WC.teams.filter(t=>t.group===g).forEach(t => {
+        const fav = S.favs.includes(t.id);
+        html += `<div class="team-card${fav?" fav":""}" onclick="toggleFav(${t.id})">
+          <span class="team-flag">${t.flag}</span>
+          <span class="team-name">${t.name}</span>
+          <i class="ti ti-star${fav?"-filled":""} fav-icon"></i>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+
+  } else if (S.tab === "matches") {
+    const days = {};
+    WC.matches.forEach(m => { const d=fmtDay(m.date); (days[d]=days[d]||[]).push(m); });
+    html += `<div class="section">`;
+    for (const [day, ms] of Object.entries(days)) {
+      html += `<div class="match-date-header">${day}</div>`;
+      ms.forEach(m => html += matchCard(m));
+    }
+    html += `</div><div class="refresh-note"><i class="ti ti-refresh" style="font-size:11px"></i> Live scores update every 60s</div>`;
+
+  } else if (S.tab === "favs") {
+    if (!S.favs.length) {
+      html += `<div class="empty"><i class="ti ti-star"></i>No favourite teams yet.<br>Go to <strong>All teams</strong> to pick yours.</div>`;
+    } else {
+      if (!S.activeFav || !S.favs.includes(S.activeFav)) S.activeFav = S.favs[0];
+      const favTeams = S.favs.map(id=>team(id)).filter(Boolean);
+      html += `<div class="section"><div class="section-title">Your teams</div><div class="fav-toggle-row">`;
+      favTeams.forEach(t => {
+        html += `<span class="fav-pill${S.activeFav===t.id?" active":""}" onclick="setFav(${t.id})">${t.flag} ${t.name}</span>`;
+      });
+      html += `</div>`;
+      const active = team(S.activeFav);
+      if (active) {
+        html += `<div class="section-title">${active.flag} ${active.name} — schedule</div>`;
+        const ms = WC.matches.filter(m=>m.home===active.id||m.away===active.id);
+        if (!ms.length) html += `<div class="empty" style="padding:24px 0">No matches scheduled yet.</div>`;
+        else ms.forEach(m => html += matchCard(m));
+      }
+      html += `</div><div class="refresh-note"><i class="ti ti-refresh" style="font-size:11px"></i> Live scores update every 60s</div>`;
+    }
+  }
+
+  app.innerHTML = html;
+}
+
+async function doStart() {
+  const inp = $("nameIn");
+  const name = inp ? inp.value.trim() : "";
+  if (!name) { if(inp) inp.focus(); return; }
+  S.user = name;
+  await loadFavs(name);
+  S.activeFav = S.favs[0]||null;
+  render();
+}
+
+function doSwitch() { S={tab:"matches",user:null,favs:[],activeFav:null}; render(); }
+function setTab(t) { S.tab=t; render(); }
+function setFav(id) { S.activeFav=id; render(); }
+
+setInterval(()=>{
+  WC.matches.forEach(m=>{ if(m.status==="live") m.minute=Math.min(90,(m.minute||60)+1); });
+  if(S.tab==="matches"||S.tab==="favs") render();
+}, 60000);
+
+render();
+</script>
+</body>
+</html>
