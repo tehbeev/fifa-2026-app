@@ -232,7 +232,7 @@ async function fetchScores() {
   fetching = true;
   try {
     const res = await fetch(
-      'https://api.football-data.org/v4/competitions/2000/matches',
+      'https://corsproxy.io/?https://api.football-data.org/v4/competitions/2000/matches',
       {headers: {'X-Auth-Token': 'dd70e5f09cc84115af636d5d6a3c3166'}, cache: 'no-store'}
     );
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -253,9 +253,15 @@ async function fetchScores() {
     liveScores = newScores;
     lastFetch = new Date();
     fetchError = false;
+    const cnt = Object.keys(newScores).length;
+    console.log('[WC2026] Loaded', cnt, 'scores.');
+    if (cnt === 0 && (data.matches||[]).length > 0) {
+      console.warn('[WC2026] API returned matches but none matched. Sample names from API:',
+        (data.matches||[]).slice(0,5).map(m=>`${m.homeTeam?.name} vs ${m.awayTeam?.name} [${m.status}]`).join(' | '));
+    }
   } catch(e) {
     fetchError = true;
-    console.warn('Score fetch failed:', e);
+    console.warn('[WC2026] Score fetch failed:', e.message || e);
   } finally {
     fetching = false;
   }
@@ -323,8 +329,9 @@ function matchCard(bm){
 function refreshStatus(){
   if(fetchError) return `<div class="refresh-row error"><i class="ti ti-wifi-off" style="font-size:12px"></i> Score update failed — retrying</div>`;
   if(fetching) return `<div class="refresh-row"><i class="ti ti-refresh spin" style="font-size:12px"></i> Updating scores...</div>`;
+  const cnt = Object.keys(liveScores).length;
   const t = lastFetch ? lastFetch.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true}) : "never";
-  return `<div class="refresh-row"><i class="ti ti-check" style="font-size:12px"></i> Scores updated ${t}</div>`;
+  return `<div class="refresh-row"><i class="ti ti-check" style="font-size:12px"></i> Scores updated ${t} · ${cnt} result${cnt!==1?'s':''} loaded</div>`;
 }
 
 function render(){
