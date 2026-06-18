@@ -283,15 +283,13 @@ function fmtDay(ds){
   return new Date(ds+":00").toLocaleDateString("en-US",{timeZone:"America/New_York",weekday:"long",month:"long",day:"numeric"});
 }
 
-async function loadFavs(name){
-  try{
-    const r=await window.storage.get("wc2026_"+name.toLowerCase().replace(/\s+/g,"_"));
-    S.favs=r?JSON.parse(r.value):[];
-  }catch(e){S.favs=[];}
+function favsKey(name){return "wc2026_favs_"+name.toLowerCase().replace(/\s+/g,"_");}
+function loadFavs(name){
+  try{const r=localStorage.getItem(favsKey(name));S.favs=r?JSON.parse(r):[];}catch(e){S.favs=[];}
 }
-async function saveFavs(){
+function saveFavs(){
   if(!S.user)return;
-  try{await window.storage.set("wc2026_"+S.user.toLowerCase().replace(/\s+/g,"_"),JSON.stringify(S.favs));}catch(e){}
+  try{localStorage.setItem(favsKey(S.user),JSON.stringify(S.favs));}catch(e){}
 }
 function toggleFav(name){
   S.favs=S.favs.includes(name)?S.favs.filter(f=>f!==name):[...S.favs,name];
@@ -412,12 +410,16 @@ async function doStart(){
   const name=inp?inp.value.trim():"";
   if(!name){if(inp)inp.focus();return;}
   S.user=name;
-  await loadFavs(name);
+  try{localStorage.setItem("wc2026_user",name);}catch(e){}
+  loadFavs(name);
   S.activeFav=S.favs[0]||null;
   await fetchScores();
   render();
 }
-function doSwitch(){S={tab:"matches",user:null,favs:[],activeFav:null};render();}
+function doSwitch(){
+  try{localStorage.removeItem("wc2026_user");}catch(e){}
+  S={tab:"matches",user:null,favs:[],activeFav:null};render();
+}
 function setTab(t){S.tab=t;render();}
 function setFav(name){S.activeFav=name;render();}
 
@@ -427,7 +429,19 @@ setInterval(async()=>{
   if(S.user && (S.tab==="matches"||S.tab==="favs")) render();
 }, 60000);
 
-render();
+// Restore session from localStorage on page load
+(async()=>{
+  try{
+    const saved=localStorage.getItem("wc2026_user");
+    if(saved){
+      S.user=saved;
+      loadFavs(saved);
+      S.activeFav=S.favs[0]||null;
+    }
+  }catch(e){}
+  await fetchScores();
+  render();
+})();
 </script>
 </body>
 </html>
