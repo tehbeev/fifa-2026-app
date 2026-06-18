@@ -135,10 +135,14 @@ const CANONICAL={
   "Congo DR":"DR Congo",
   "Curacao":"Curaçao",
   "Bosnia":"Bosnia and Herzegovina",
+  "Bosnia & Herzegovina":"Bosnia and Herzegovina",
+  "Bosnia-Herzegovina":"Bosnia and Herzegovina",
   "Czech Republic":"Czechia",
   "Turkey":"Türkiye"
 };
 function canon(n){return CANONICAL[n]||n;}
+// Normalize a name for fuzzy key matching: lowercase, trim, & → and
+function norm(n){return (n||'').toLowerCase().trim().replace(/\s*&\s*/g,' and ').replace(/\s+/g,' ');}
 
 function teamGroup(name){
   for(const[g,ts]of Object.entries(GROUPS)) if(ts.includes(name)) return g;
@@ -242,7 +246,8 @@ async function fetchScores() {
       const h = canon(m.homeTeam?.name || '');
       const a = canon(m.awayTeam?.name || '');
       if (!h || !a) return;
-      const key = h + '|' + a;
+      // Key by normalized names so minor variants (& vs and, casing, etc.) still match
+      const key = norm(h) + '|' + norm(a);
       const ft = m.score?.fullTime;
       if (m.status === 'FINISHED' && ft?.home != null) {
         newScores[key] = {homeScore: ft.home, awayScore: ft.away, status: 'finished'};
@@ -254,10 +259,16 @@ async function fetchScores() {
     lastFetch = new Date();
     fetchError = false;
     const cnt = Object.keys(newScores).length;
-    console.log('[WC2026] Loaded', cnt, 'scores.');
+    console.log('[WC2026] Loaded', cnt, 'scores. Keys:', Object.keys(newScores).join(' | '));
+    const missing = BASE_MATCHES.filter(bm => {
+      const k = norm(bm.home)+'|'+norm(bm.away);
+      const rk = norm(bm.away)+'|'+norm(bm.home);
+      const kickoff = new Date(bm.date+':00');
+      return (new Date()-kickoff)/60000 > 130 && !newScores[k] && !newScores[rk];
+    });
+    if (missing.length) console.warn('[WC2026] Missing scores for:', missing.map(m=>m.home+' v '+m.away).join(', '));
     if (cnt === 0 && (data.matches||[]).length > 0) {
-      console.warn('[WC2026] API returned matches but none matched. Sample names from API:',
-        (data.matches||[]).slice(0,5).map(m=>`${m.homeTeam?.name} vs ${m.awayTeam?.name} [${m.status}]`).join(' | '));
+      console.warn('[WC2026] Raw API names:', (data.matches||[]).slice(0,8).map(m=>`"${m.homeTeam?.name}" vs "${m.awayTeam?.name}"`).join(' | '));
     }
   } catch(e) {
     fetchError = true;
@@ -268,9 +279,13 @@ async function fetchScores() {
 }
 
 function mergedMatch(bm) {
-  const key = bm.home + '|' + bm.away;
+  // Look up by normalized key; also try reverse (in case API has home/away swapped)
+  const key = norm(bm.home) + '|' + norm(bm.away);
+  const revKey = norm(bm.away) + '|' + norm(bm.home);
   const live = liveScores[key];
   if (live) return {...bm, ...live};
+  const rev = liveScores[revKey];
+  if (rev) return {...bm, homeScore: rev.awayScore, awayScore: rev.homeScore, status: rev.status};
   // Auto-detect if match time has passed
   const kickoff = new Date(bm.date + ':00');
   const now = new Date();
