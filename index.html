@@ -243,13 +243,24 @@ async function fetchScores() {
   if (fetching) return;
   fetching = true;
   try {
-    // Append timestamp so corsproxy.io can't serve a cached response
-    const res = await fetch(
-      'https://corsproxy.io/?https://api.football-data.org/v4/competitions/2000/matches&_=' + Date.now(),
-      {headers: {'X-Auth-Token': 'dd70e5f09cc84115af636d5d6a3c3166'}, cache: 'no-store'}
-    );
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
+    const TOKEN = 'dd70e5f09cc84115af636d5d6a3c3166';
+    const TARGET = 'https://api.football-data.org/v4/competitions/2000/matches';
+    // Try two proxies in sequence so a single proxy outage doesn't break scores
+    const proxies = [
+      () => fetch(`https://corsproxy.io/?${TARGET}`,
+                  {headers: {'X-Auth-Token': TOKEN}, cache: 'no-store'}),
+      () => fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(TARGET + '?token=' + TOKEN)}`,
+                  {cache: 'no-store'}),
+    ];
+    let res, lastErr;
+    for (const attempt of proxies) {
+      try { res = await attempt(); if (res.ok) break; lastErr = new Error('HTTP ' + res.status); }
+      catch(e) { lastErr = e; res = null; }
+    }
+    if (!res || !res.ok) throw lastErr || new Error('All proxies failed');
+    const raw = await res.json();
+    // allorigins wraps the body in {contents:"..."}; corsproxy returns JSON directly
+    const data = raw.contents ? JSON.parse(raw.contents) : raw;
     const newScores = {};
     (data.matches || []).forEach(m => {
       const h = canon(m.homeTeam?.name || '');
