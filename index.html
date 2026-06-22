@@ -90,6 +90,14 @@ input[type=text]:focus{border-color:#378add;box-shadow:0 0 0 3px rgba(55,138,221
 .refresh-row.error{color:var(--text-danger)}
 .spin{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.date-picker{border-bottom:0.5px solid var(--border);background:var(--bg);overflow:hidden}
+.date-picker-inner{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;scrollbar-width:none;-ms-overflow-style:none}
+.date-picker-inner::-webkit-scrollbar{display:none}
+.date-chip{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:12px;font-family:var(--font);background:var(--bg2);border:0.5px solid transparent;color:var(--text2);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;line-height:1.5;transition:background 0.15s}
+.date-chip.is-today{border-color:var(--border2);color:var(--text);font-weight:600}
+.date-chip.active{background:var(--text);color:var(--bg);font-weight:600;border-color:var(--text)}
+.today-strip{border-bottom:0.5px solid var(--border)}
+.today-strip-hdr{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-info);background:var(--bg-info);padding:9px 16px}
 </style>
 </head>
 <body>
@@ -295,7 +303,12 @@ function mergedMatch(bm) {
   return {...bm, status: elapsed >= 130 ? 'unknown' : 'scheduled'};
 }
 
-let S={tab:"matches",user:null,favs:[],activeFav:null};
+let S={tab:"matches",user:null,favs:[],activeFav:null,matchDate:null};
+
+function todayDateStr(){
+  return new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+}
+function parseDateLocal(s){const[y,m,d]=s.split('-');return new Date(+y,+m-1,+d);}
 const $=id=>document.getElementById(id);
 
 function fmtET(ds){
@@ -398,12 +411,42 @@ function render(){
     }
     html+=`</div>`;
   }else if(S.tab==="matches"){
-    const days={};
-    BASE_MATCHES.forEach(m=>{const d=fmtDay(m.date);(days[d]=days[d]||[]).push(m);});
+    const today=todayDateStr();
+    const allDates=[...new Set(BASE_MATCHES.map(m=>m.date.split('T')[0]))].sort();
+    // Default to today; if today has no matches fall back to nearest past match day
+    let sel=S.matchDate;
+    if(!sel){
+      if(allDates.includes(today)) sel=today;
+      else{const past=allDates.filter(d=>d<=today);sel=past.length?past[past.length-1]:allDates[0];}
+    }
+    // Date picker
+    html+=`<div class="date-picker"><div class="date-picker-inner" id="dp-scroll">`;
+    allDates.forEach(d=>{
+      const isToday=d===today, isSel=d===sel;
+      const lbl=isToday?'Today':parseDateLocal(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      html+=`<button class="date-chip${isSel?' active':''}${isToday?' is-today':''}" id="${isSel?'dp-sel':''}" onclick="setMatchDate('${d}')">${lbl}</button>`;
+    });
+    html+=`</div></div>`;
+    // Today strip (only when viewing a different date)
+    const todayMs=BASE_MATCHES.filter(m=>m.date.startsWith(today));
+    if(todayMs.length&&sel!==today){
+      html+=`<div class="today-strip">
+        <div class="today-strip-hdr">⚡ Today — ${parseDateLocal(today).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+        <div class="section">`;
+      todayMs.forEach(m=>html+=matchCard(m));
+      html+=`</div></div>`;
+    }
+    // Selected date matches
     html+=`<div class="section">`;
-    for(const[day,ms]of Object.entries(days)){
-      html+=`<div class="match-date-header">${day}</div>`;
-      ms.forEach(m=>html+=matchCard(m));
+    const selMs=BASE_MATCHES.filter(m=>m.date.startsWith(sel));
+    const selHdr=sel===today
+      ?`Today — ${parseDateLocal(sel).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`
+      :parseDateLocal(sel).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    if(selMs.length){
+      html+=`<div class="match-date-header">${selHdr}</div>`;
+      selMs.forEach(m=>html+=matchCard(m));
+    }else{
+      html+=`<div class="empty" style="padding:32px 0"><i class="ti ti-calendar-off"></i>No matches on this day.</div>`;
     }
     html+=`</div>${refreshStatus()}`;
   }else if(S.tab==="favs"){
@@ -426,6 +469,8 @@ function render(){
     }
   }
   app.innerHTML=html;
+  // Scroll selected date chip into view
+  setTimeout(()=>{const el=document.getElementById('dp-sel');if(el)el.scrollIntoView({inline:'center',block:'nearest',behavior:'instant'});},0);
 }
 
 async function doStart(){
@@ -444,6 +489,7 @@ function doSwitch(){
   S={tab:"matches",user:null,favs:[],activeFav:null};render();
 }
 function setTab(t){S.tab=t;render();}
+function setMatchDate(d){S.matchDate=d;render();}
 function setFav(name){S.activeFav=name;render();}
 
 // Fetch and re-render every 30s (2 req/min — well within the 10 req/min free limit)
